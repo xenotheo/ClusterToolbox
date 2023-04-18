@@ -1,0 +1,44 @@
+clear all
+close all
+load clustDatasets.mat
+addpath(genpath(strcat(pwd,'/Clustering')))
+sets       = {'Aggregation' ; 'Compound' ; 'flame' ; 'spiral'};
+
+
+clustdataset = clustdataset( cellfun(@(x) ismember(x.Description,sets),clustdataset));
+
+algorithms = {...
+              struct('name','kmeans','title','kmeans')...;
+              struct('name','kmedoids','title','clara')...;
+              struct('name','affinityPropagation','title','affinityPropagation')...;
+              struct('name','cluster','title','agglomerative')...;
+              struct('name','dbscan','title','dbscan')...;
+              struct('name','optics','title','optics')...;
+              struct('name','spectralClustering','title','spectral')...;
+              struct('name','meanshift','title','meanshift')...;
+              struct('name','densityCluster','title','density peaks')...
+              };
+for i = 1:length(algorithms)
+    algorithms{i}.results = cell(size(sets,1),1);
+end
+    
+for i = 1:length(clustdataset)
+    if( ismember(clustdataset{i}.Description,sets))
+           
+        for j = 1:length(algorithms)
+           algorithms{j}.params  = setparams ( clustdataset{i}, algorithms{j}.name); 
+           if (strcmp(algorithms{j}.name,'cluster'))
+               fprintf('--- Running %s for Dataset %s ---\n',algorithms{j}.title,clustdataset{i}.Description)
+               tt = tic;
+               algorithms{j}.results{i} = feval(algorithms{j}.name , linkage(clustdataset{i}.Dataset , 'ward') ,algorithms{j}.params{:});   
+               fprintf('--- Done in %f ---\n\n',toc(tt));
+           else
+               fprintf('--- Running %s for Dataset %s ---\n',algorithms{j}.title,clustdataset{i}.Description)
+               tt = tic;
+               algorithms{j}.results{i} =  feval(algorithms{j}.name , algorithms{j}.params{:});
+               fprintf('--- Done in %f ---\n\n',toc(tt));
+           end
+        end
+    end    
+end
+plotfigures(algorithms,clustdataset);

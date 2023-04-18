@@ -1,0 +1,12 @@
+function [labels] = dbscanclust(reach , coreDist, ordering, eps)
+    %db
+
+    labels = zeros(size(reach,1),1);
+    
+    far = reach > eps;
+    prox = coreDist <= eps;
+    
+    labels(ordering) = cumsum( far(ordering) & prox(ordering))-1;
+    labels(far & ~prox) = -1;
+    
+end
